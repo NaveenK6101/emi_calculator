@@ -1,11 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b0f1a">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>EMI Calculator – Flat vs Reducing</title>
+
+<title>EMI Calculator | Car Loan, Home Loan & Loan Amortization Calculator</title>
+
+<meta name="description"
+content="Free EMI Calculator for car loans, home loans and personal loans. Compare flat vs reducing balance EMI, monthly payments, interest costs and full amortization schedule instantly.">
+
+<meta name="keywords"
+content="emi calculator, car loan calculator, home loan calculator, loan amortization calculator, reducing balance emi calculator, flat rate emi calculator, personal loan emi">
+
+<meta name="robots" content="index, follow">
+
+<meta name="theme-color" content="#0b0f1a">
+
+<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -15,6 +26,7 @@
   --flat-color: #f97316; --reducing-color: #22d3ee; --text: #e8eef8;
   --muted: #7a8fbb; --accent: #6366f1; --green: #10b981; --red: #ef4444;
   --cmp1: #a78bfa; --cmp2: #fb7185;
+  --mf-color: #f59e0b; --sip-color: #34d399; --loan-a: #818cf8; --loan-b: #f472b6;
 }
 body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; padding: 2rem 1rem; }
 .noise {
@@ -202,6 +214,45 @@ footer { text-align: center; margin-top: 2rem; color: var(--muted); font-size: .
   letter-spacing: .1em; margin-bottom: .7rem; margin-top: 1.5rem; display: flex; align-items: center; gap: .7rem;
 }
 .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── SIP STRATEGY EXTRAS ── */
+.card.mf::before    { background: var(--mf-color); }
+.card.sip::before   { background: var(--sip-color); }
+.card.loan-a::before{ background: var(--loan-a); }
+.card.loan-b::before{ background: var(--loan-b); }
+.card.mf .big    { color: var(--mf-color); }
+.card.sip .big   { color: var(--sip-color); }
+.card.loan-a .big{ color: var(--loan-a); }
+.card.loan-b .big{ color: var(--loan-b); }
+.ctrl-group.mf input[type=range]::-webkit-slider-thumb { background: var(--mf-color); box-shadow: 0 0 8px rgba(245,158,11,.5); }
+.ctrl-group.mf .input-row input[type=number]:focus { border-color: var(--mf-color); }
+.ctrl-group.sip-a input[type=range]::-webkit-slider-thumb { background: var(--loan-a); }
+.ctrl-group.sip-a .input-row input[type=number]:focus { border-color: var(--loan-a); }
+.ctrl-group.sip-b input[type=range]::-webkit-slider-thumb { background: var(--loan-b); }
+.ctrl-group.sip-b .input-row input[type=number]:focus { border-color: var(--loan-b); }
+.sip-derived-row {
+  display: flex; align-items: center; gap: .7rem; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px; padding: .6rem 1rem;
+  margin-bottom: 1.2rem; flex-wrap: wrap;
+}
+.sip-derived-row .drv { font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 700; }
+.sip-derived-row .drv-label { font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-family: 'JetBrains Mono', monospace; }
+.sip-derived-row .drv-sep { color: var(--border); margin: 0 .3rem; }
+.winner-banner {
+  border-radius: 12px; padding: .9rem 1.4rem; margin-bottom: 1.2rem;
+  display: flex; align-items: center; gap: .9rem; font-size: .85rem; font-weight: 700;
+  border: 1px solid; background: rgba(16,185,129,.08); border-color: rgba(16,185,129,.3); color: var(--green);
+}
+.winner-banner.neutral { background: rgba(99,102,241,.08); border-color: rgba(99,102,241,.3); color: var(--accent); }
+.winner-banner .wi { font-size: 1.5rem; }
+.sip-chart-tabs { display: flex; gap: .4rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+.sip-chart-tab {
+  padding: .35rem .85rem; border-radius: 7px; border: 1px solid var(--border); background: transparent;
+  color: var(--muted); font-family: 'Syne', sans-serif; font-size: .76rem; font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.sip-chart-tab.active { background: var(--mf-color); color: #111; border-color: var(--mf-color); }
+.int-type-toggle { display: flex; align-items: center; gap: .7rem; margin-bottom: .8rem; flex-wrap: wrap; }
+.int-type-toggle > span { font-size: .72rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
 </style>
 </head>
 <body>
@@ -220,6 +271,7 @@ footer { text-align: center; margin-top: 2rem; color: var(--muted); font-size: .
     <button class="active" id="mode-normal"  onclick="setMode('normal')">📊 Calculate EMI</button>
     <button id="mode-reverse" onclick="setMode('reverse')">🎯 Set EMI → Tenure</button>
     <button id="mode-compare" onclick="setMode('compare')">📈 Compare Scenarios</button>
+    <button id="mode-sip"     onclick="setMode('sip')">💡 EMI vs SIP Strategy</button>
   </div>
 </div>
 
@@ -346,6 +398,17 @@ footer { text-align: center; margin-top: 2rem; color: var(--muted); font-size: .
       <input type="range" id="csl-tenure" min="1" max="360" step="1" value="24"/>
     </div>
 
+    <!-- Shared: Interest Rate (visible when comparing EMIs, where rate is fixed) -->
+    <div class="ctrl-group" id="cgrp-rate" style="display:block">
+      <label id="cgrp-rate-label">Interest Rate (%)</label>
+      <div class="input-row">
+        <input type="number" id="cnum-rate" value="12" min="0.1" max="60" step="0.25"/>
+        <span class="unit-badge">% p.a.</span>
+      </div>
+      <input type="range" id="csl-rate" min="0.1" max="60" step="0.25" value="12"/>
+      <div class="ctrl-hint">Rate applied to both scenarios</div>
+    </div>
+
     <!-- Scenario 1 -->
     <div class="ctrl-group cmp1" id="cgrp-s1">
       <label id="cmp-s1-label">Scenario A — EMI (₹)</label>
@@ -394,6 +457,131 @@ footer { text-align: center; margin-top: 2rem; color: var(--muted); font-size: .
 
 </div><!-- /panel-compare -->
 
+<!-- ════════════════════════════════════════ -->
+<!-- SIP STRATEGY PANEL                       -->
+<!-- ════════════════════════════════════════ -->
+<div id="panel-sip" style="display:none">
+
+  <!-- Interest type toggle -->
+  <div class="cmp-sub-bar visible">
+    <label>Interest Type:</label>
+    <div class="toggle-wrap">
+      <button class="active" id="sip-int-flat" onclick="setSipInterestType('flat')">Flat Rate</button>
+      <button id="sip-int-red" onclick="setSipInterestType('reducing')">Reducing Balance</button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls" id="sip-controls">
+    <div class="ctrl-group">
+      <label>Loan Amount (₹)</label>
+      <div class="input-row">
+        <input type="number" id="snum-amount" value="5000000" min="1000" max="100000000" step="10000"/>
+        <span class="unit-badge">₹</span>
+      </div>
+      <input type="range" id="ssl-amount" min="10000" max="50000000" step="10000" value="5000000"/>
+      <div class="ctrl-hint">Range: ₹10K – ₹5Cr</div>
+    </div>
+
+    <div class="ctrl-group">
+      <label id="sip-rate-label">Loan Interest Rate (%)</label>
+      <div class="input-row">
+        <input type="number" id="snum-rate" value="9" min="0.1" max="50" step="0.25"/>
+        <span class="unit-badge">% p.a.</span>
+      </div>
+      <input type="range" id="ssl-rate" min="0.1" max="30" step="0.25" value="9"/>
+    </div>
+
+    <div class="ctrl-group sip-a">
+      <label>Standard EMI / Option A (₹)</label>
+      <div class="input-row">
+        <input type="number" id="snum-emia" value="44986" min="100" max="10000000" step="100"/>
+        <span class="unit-badge">₹/mo</span>
+      </div>
+      <input type="range" id="ssl-emia" min="100" max="500000" step="100" value="44986"/>
+      <div class="ctrl-hint">Higher EMI → shorter tenure</div>
+    </div>
+
+    <div class="ctrl-group sip-b">
+      <label>Reduced EMI / Option B (₹)</label>
+      <div class="input-row">
+        <input type="number" id="snum-emib" value="40000" min="100" max="10000000" step="100"/>
+        <span class="unit-badge">₹/mo</span>
+      </div>
+      <input type="range" id="ssl-emib" min="100" max="500000" step="100" value="40000"/>
+      <div class="ctrl-hint">Lower EMI → longer tenure + SIP</div>
+    </div>
+
+    <div class="ctrl-group mf">
+      <label>MF Expected Return (% p.a.)</label>
+      <div class="input-row">
+        <input type="number" id="snum-mfrate" value="12" min="1" max="30" step="0.5"/>
+        <span class="unit-badge">% p.a.</span>
+      </div>
+      <input type="range" id="ssl-mfrate" min="1" max="30" step="0.5" value="12"/>
+      <div class="ctrl-hint">Expected MF/SIP annual return</div>
+    </div>
+  </div>
+
+  <!-- Derived row: SIP = A - B -->
+  <div class="sip-derived-row" id="sip-derived-row">
+    <div>
+      <div class="drv-label">Monthly SIP</div>
+      <div class="drv" id="sip-sip-amount" style="color:var(--sip-color)">—</div>
+    </div>
+    <div class="drv-sep">│</div>
+    <div>
+      <div class="drv-label">Option A Tenure</div>
+      <div class="drv" id="sip-tenure-a" style="color:var(--loan-a)">—</div>
+    </div>
+    <div class="drv-sep">│</div>
+    <div>
+      <div class="drv-label">Option B Tenure</div>
+      <div class="drv" id="sip-tenure-b" style="color:var(--loan-b)">—</div>
+    </div>
+    <div class="drv-sep">│</div>
+    <div>
+      <div class="drv-label">Extra Months (B vs A)</div>
+      <div class="drv" id="sip-extra-months" style="color:var(--muted)">—</div>
+    </div>
+  </div>
+
+  <!-- Winner banner -->
+  <div class="winner-banner" id="sip-winner-banner">
+    <span class="wi">🏆</span>
+    <span id="sip-winner-text">—</span>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="summary-grid" id="sip-summary-grid"></div>
+
+  <!-- Charts -->
+  <div class="chart-section visible" id="sip-chart-section">
+    <h3>📈 Wealth Build Analysis</h3>
+    <div class="sip-chart-tabs">
+      <button class="sip-chart-tab active" data-sipchart="growth" onclick="setSipChartType('growth')">💰 Loan Balance vs MF Corpus</button>
+      <button class="sip-chart-tab" data-sipchart="cumint" onclick="setSipChartType('cumint')">📉 Cumulative Interest</button>
+      <button class="sip-chart-tab" data-sipchart="netwealth" onclick="setSipChartType('netwealth')">🚀 Net Wealth Comparison</button>
+    </div>
+    <div class="chart-wrap" style="height:360px">
+      <canvas id="sip-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Month-by-month table -->
+  <div class="section-title">Month-by-Month Breakdown</div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--loan-a)"></span> Option A (Standard EMI)</span>
+    <span><span class="dot" style="background:var(--loan-b)"></span> Option B (Reduced EMI)</span>
+    <span><span class="dot" style="background:var(--mf-color)"></span> SIP / MF Corpus</span>
+    <span><span class="dot" style="background:var(--sip-color)"></span> Net Position (MF − Extra Interest)</span>
+  </div>
+  <div class="table-wrap">
+    <table><thead id="stbl-head"></thead><tbody id="stbl-body"></tbody><tfoot id="stbl-foot"></tfoot></table>
+  </div>
+
+</div><!-- /panel-sip -->
+
 <footer>
   Flat EMI = (P + P×r×n/12)/n &nbsp;|&nbsp; Reducing: P×r_m×(1+r_m)ⁿ/((1+r_m)ⁿ−1) &nbsp;|&nbsp;
   Flat reverse: n = P/(EMI−P×r/12) &nbsp;|&nbsp; Reducing reverse: n = log(EMI/(EMI−P×r_m))/log(1+r_m)<br>
@@ -409,13 +597,18 @@ let S = {
   amount:170000, tenure:24, flatRate:8.5, redRate:17, emi:8000,
   mode:'normal',
   cmpInterestType:'flat', cmpType:'emi',
-  cmpAmount:170000, cmpTenure:24,
+  cmpAmount:170000, cmpTenure:24, cmpRate:12,
   cmpS1Val:9000, cmpS2Val:11000,
-  cmpS1Name:'Scenario A', cmpS2Name:'Scenario B'
+  cmpS1Name:'Scenario A', cmpS2Name:'Scenario B',
+  // SIP Strategy
+  sipAmount:5000000, sipRate:9, sipInterestType:'reducing',
+  sipEmiA:44986, sipEmiB:40000, sipMfRate:12
 };
 let activeTab = 'combined';
 let chartType = 'balance';
 let cmpChart = null;
+let sipChart = null;
+let sipChartType = 'growth';
 
 // ──────────────────────────────────────────────
 // FORMAT
@@ -474,9 +667,10 @@ function cmpCalcByEmi(P, rate, emi, type){
 // ──────────────────────────────────────────────
 function setMode(m){
   S.mode=m;
-  ['normal','reverse','compare'].forEach(x=>document.getElementById('mode-'+x).classList.toggle('active',x===m));
-  document.getElementById('panel-normal').style.display  = m==='compare'?'none':'';
+  ['normal','reverse','compare','sip'].forEach(x=>document.getElementById('mode-'+x).classList.toggle('active',x===m));
+  document.getElementById('panel-normal').style.display  = (m==='compare'||m==='sip')?'none':'';
   document.getElementById('panel-compare').style.display = m==='compare'?'':'none';
+  document.getElementById('panel-sip').style.display     = m==='sip'?'':'none';
   document.getElementById('grp-tenure').style.display    = m==='reverse'?'none':'';
   document.getElementById('grp-emi').style.display       = m==='reverse'?'':'none';
   document.getElementById('rev-result').classList.toggle('visible', m==='reverse');
@@ -486,7 +680,26 @@ function setCmpInterestType(t){
   S.cmpInterestType=t;
   document.getElementById('cmp-int-flat').classList.toggle('active',t==='flat');
   document.getElementById('cmp-int-red').classList.toggle('active',t==='reducing');
+  // Update rate label and default when interest type changes (EMI mode only)
+  if(S.cmpType==='emi'){
+    const defaultRate = t==='flat' ? 8.5 : 12;
+    S.cmpRate = defaultRate;
+    document.getElementById('cnum-rate').value = defaultRate;
+    document.getElementById('csl-rate').value  = defaultRate;
+    document.getElementById('cgrp-rate-label').textContent = t==='flat'?'Flat Rate (%)':'Reducing Rate (%)';
+  }
   updateCompare();
+}
+function setSipInterestType(t){
+  S.sipInterestType=t;
+  document.getElementById('sip-int-flat').classList.toggle('active',t==='flat');
+  document.getElementById('sip-int-red').classList.toggle('active',t==='reducing');
+  updateSip();
+}
+function setSipChartType(t){
+  sipChartType=t;
+  document.querySelectorAll('.sip-chart-tab').forEach(b=>b.classList.toggle('active',b.dataset.sipchart===t));
+  updateSip();
 }
 function setCmpType(t){
   S.cmpType=t;
@@ -494,6 +707,8 @@ function setCmpType(t){
   document.getElementById('cmp-type-rate').classList.toggle('active',t==='rate');
   // Show/hide tenure (rate mode needs tenure; emi mode calculates it)
   document.getElementById('cgrp-tenure').style.display = t==='emi'?'none':'';
+  // Show/hide shared rate input (only in EMI mode — rate mode has rate per-scenario)
+  document.getElementById('cgrp-rate').style.display   = t==='emi'?'':'none';
   const label = t==='emi'?'EMI (₹)':'Interest Rate (%)';
   const unit  = t==='emi'?'₹/mo':'% p.a.';
   document.getElementById('cmp-s1-label').textContent = 'Scenario A — '+label;
@@ -729,6 +944,237 @@ function renderChart(r1,r2,n1,n2){
 }
 
 // ──────────────────────────────────────────────
+// SIP STRATEGY
+// ──────────────────────────────────────────────
+function sipFV(monthly, rAnnual, months){
+  // Future Value of SIP (end-of-period payments)
+  const rm = rAnnual/100/12;
+  if(rm===0) return monthly*months;
+  return monthly * (Math.pow(1+rm, months)-1) / rm * (1+rm);
+}
+
+function updateSip(){
+  const P=S.sipAmount, rate=S.sipRate, iType=S.sipInterestType;
+  const emiA=S.sipEmiA, emiB=S.sipEmiB, mfRate=S.sipMfRate;
+
+  // Validate
+  const revA = iType==='flat' ? revFlat(P,rate,emiA) : revReducing(P,rate,emiA);
+  const revB = iType==='flat' ? revFlat(P,rate,emiB) : revReducing(P,rate,emiB);
+
+  const errEl = document.getElementById('sip-summary-grid');
+
+  if(!revA.valid||!revB.valid){
+    errEl.innerHTML=`<div class="card diff" style="grid-column:1/-1"><small>Error</small><div class="big" style="color:var(--red);font-size:1rem">EMI is too low to cover monthly interest. Increase one or both EMIs.</div></div>`;
+    document.getElementById('sip-winner-banner').style.display='none';
+    return;
+  }
+  if(emiB>=emiA){
+    errEl.innerHTML=`<div class="card diff" style="grid-column:1/-1"><small>Setup</small><div class="big" style="color:var(--muted);font-size:1rem">Option B EMI must be lower than Option A for SIP strategy to apply.</div></div>`;
+    document.getElementById('sip-winner-banner').style.display='none';
+    return;
+  }
+
+  const nA = Math.min(Math.ceil(revA.n), 600);
+  const nB = Math.min(Math.ceil(revB.n), 600);
+  const sip = emiA - emiB;
+
+  const schA = calc(P, rate, nA, iType);
+  const schB = calc(P, rate, nB, iType);
+  const intA = schA.totalInterest, intB = schB.totalInterest;
+  const extraInt = intB - intA;
+
+  // MF corpus at end of Option B tenure (SIP each month for nB months)
+  const corpusB = sipFV(sip, mfRate, nB);
+
+  // Option A post-loan investment: after nA months they invest emiA for (nB-nA) months
+  const corpusA_postloan = nB>nA ? sipFV(emiA, mfRate, nB-nA) : 0;
+
+  // Total amount actually put into SIP over the full tenure
+  const totalSipInvested = sip * nB;
+
+  // True net gain: MF Corpus − Total SIP Invested − Extra Interest Paid (vs Option A)
+  const trueNetGain = corpusB - totalSipInvested - extraInt;
+  const sipWins = trueNetGain > 0;
+
+  // Update derived row
+  document.getElementById('sip-sip-amount').textContent   = fmtS(sip);
+  document.getElementById('sip-tenure-a').textContent     = moStr(nA);
+  document.getElementById('sip-tenure-b').textContent     = moStr(nB);
+  document.getElementById('sip-extra-months').textContent = (nB-nA)>0 ? `+${nB-nA} mo` : '—';
+
+  // Winner banner
+  const banner = document.getElementById('sip-winner-banner');
+  banner.style.display='flex';
+  if(sipWins){
+    banner.className='winner-banner';
+    document.getElementById('sip-winner-text').innerHTML =
+      `SIP Strategy Wins! Corpus <b>${fmtS(corpusB)}</b> beats total SIP invested (${fmtS(totalSipInvested)}) + extra interest (${fmtS(extraInt)}) — true profit: <b>${fmtS(trueNetGain)}</b>.`;
+  } else {
+    banner.className='winner-banner neutral';
+    document.getElementById('sip-winner-text').innerHTML =
+      `SIP corpus (${fmtS(corpusB)}) doesn't yet cover SIP invested (${fmtS(totalSipInvested)}) + extra interest (${fmtS(extraInt)}). Try a higher MF return rate or smaller EMI gap.`;
+  }
+
+  renderSipSummary(schA, schB, nA, nB, sip, corpusB, totalSipInvested, extraInt, trueNetGain);
+  renderSipChart(schA, schB, nA, nB, sip, corpusB, mfRate);
+  renderSipTable(schA, schB, nA, nB, sip, mfRate);
+}
+
+function renderSipSummary(schA, schB, nA, nB, sip, corpusB, totalSipInvested, extraInt, trueNetGain){
+  const cards=[
+    {cls:'loan-a', label:'Option A — Total Interest Paid', val:fmtS(schA.totalInterest),
+      sub:`EMI: ${fmtS(schA.emi)}/mo · Tenure: ${moStr(nA)}`},
+    {cls:'loan-b', label:'Option B — Total Interest Paid', val:fmtS(schB.totalInterest),
+      sub:`EMI: ${fmtS(schB.emi)}/mo · Tenure: ${moStr(nB)}`},
+    {cls:'sip',    label:'Monthly SIP (A − B)',            val:fmtS(sip),
+      sub:`${fmtS(schA.emi)} − ${fmtS(schB.emi)}`},
+    {cls:'diff',   label:'Total SIP Invested',             val:fmtS(totalSipInvested),
+      sub:`${fmtS(sip)}/mo × ${nB} months`},
+    {cls:'mf',     label:'MF Corpus at Loan End',          val:fmtS(corpusB),
+      sub:`SIP for ${moStr(nB)} @ ${S.sipMfRate}% p.a.`},
+    {cls:trueNetGain>0?'winner':'diff', label:'True Net Gain',
+      val:(trueNetGain<0?'−':'')+fmtS(Math.abs(trueNetGain)),
+      sub:trueNetGain>0
+        ? `✓ Corpus (${fmtS(corpusB)}) − SIP invested (${fmtS(totalSipInvested)}) − extra interest (${fmtS(extraInt)})`
+        : `Corpus (${fmtS(corpusB)}) < SIP invested + extra interest of ${fmtS(extraInt)}`},
+  ];
+  document.getElementById('sip-summary-grid').innerHTML=cards.map(c=>
+    `<div class="card ${c.cls}"><small>${c.label}</small><div class="big">${c.val}</div><div class="sub">${c.sub}</div></div>`
+  ).join('');
+}
+
+function renderSipChart(schA, schB, nA, nB, sip, corpusB, mfRate){
+  const maxN = nB;
+  const labels = Array.from({length:maxN},(_,i)=>'M'+(i+1));
+
+  let dBalA=[], dBalB=[], dCorpus=[], dNetWealth=[], dCumIntA=[], dCumIntB=[];
+  let cumIntA=0, cumIntB=0, rm=mfRate/100/12;
+
+  for(let i=0;i<maxN;i++){
+    const a = i<schA.schedule.length ? schA.schedule[i] : null;
+    const b = i<schB.schedule.length ? schB.schedule[i] : null;
+    cumIntA += a ? a.interest : 0;
+    cumIntB += b ? b.interest : 0;
+
+    const corpus_i = sipFV(sip, mfRate, i+1);
+    const extraInt_i = cumIntB - cumIntA;
+
+    dBalA.push(a ? Math.round(a.balance) : 0);
+    dBalB.push(b ? Math.round(b.balance) : 0);
+    dCorpus.push(Math.round(corpus_i));
+    dCumIntA.push(Math.round(cumIntA));
+    dCumIntB.push(Math.round(cumIntB));
+    dNetWealth.push(Math.round(corpus_i - extraInt_i));
+  }
+
+  if(sipChart){ sipChart.destroy(); sipChart=null; }
+  const ctx=document.getElementById('sip-chart').getContext('2d');
+
+  let datasets=[], chartTitle='';
+  if(sipChartType==='growth'){
+    chartTitle='Balance / Corpus (₹)';
+    datasets=[
+      {label:'Option A Loan Balance', data:dBalA, borderColor:'rgba(129,140,248,1)', backgroundColor:'rgba(129,140,248,0.07)', borderWidth:2, pointRadius:maxN>60?0:2, tension:0.3, fill:true},
+      {label:'Option B Loan Balance', data:dBalB, borderColor:'rgba(244,114,182,1)', backgroundColor:'rgba(244,114,182,0.07)', borderWidth:2, pointRadius:maxN>60?0:2, tension:0.3, fill:true},
+      {label:'SIP Corpus (MF)',        data:dCorpus,borderColor:'rgba(245,158,11,1)', backgroundColor:'rgba(245,158,11,0.1)',  borderWidth:2.5,pointRadius:maxN>60?0:2, tension:0.3, fill:true},
+    ];
+  } else if(sipChartType==='cumint'){
+    chartTitle='Cumulative Interest Paid (₹)';
+    datasets=[
+      {label:'Option A Cumulative Interest', data:dCumIntA, borderColor:'rgba(129,140,248,1)', backgroundColor:'rgba(129,140,248,0.08)', borderWidth:2, pointRadius:maxN>60?0:2, tension:0.3, fill:true},
+      {label:'Option B Cumulative Interest', data:dCumIntB, borderColor:'rgba(244,114,182,1)', backgroundColor:'rgba(244,114,182,0.08)', borderWidth:2, pointRadius:maxN>60?0:2, tension:0.3, fill:true},
+    ];
+  } else {
+    chartTitle='Net Wealth: SIP Corpus − Extra Interest (₹)';
+    datasets=[
+      {label:'Net SIP Advantage', data:dNetWealth, borderColor:'rgba(52,211,153,1)', backgroundColor:ctx2=>{
+        const g=ctx.createLinearGradient(0,0,0,360);
+        g.addColorStop(0,'rgba(52,211,153,0.25)'); g.addColorStop(1,'rgba(52,211,153,0.01)');
+        return g;
+      }, borderWidth:2.5, pointRadius:maxN>60?0:2, tension:0.3, fill:true},
+      {label:'SIP Corpus Total',  data:dCorpus,    borderColor:'rgba(245,158,11,0.7)', borderWidth:1.5, borderDash:[4,4], pointRadius:0, tension:0.3},
+    ];
+  }
+
+  sipChart=new Chart(ctx,{
+    type:'line',
+    data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{labels:{color:'#7a8fbb',font:{family:"'JetBrains Mono', monospace",size:11},boxWidth:13}},
+        tooltip:{
+          backgroundColor:'#1a2236', borderColor:'#243050', borderWidth:1,
+          titleColor:'#e8eef8', bodyColor:'#7a8fbb',
+          titleFont:{family:"'Syne', sans-serif",size:12,weight:'bold'},
+          bodyFont:{family:"'JetBrains Mono', monospace",size:11},
+          callbacks:{label:c=>`  ${c.dataset.label}: ₹${Math.round(c.parsed.y).toLocaleString('en-IN')}`}
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#7a8fbb',font:{family:"'JetBrains Mono', monospace",size:10},maxTicksLimit:20},
+           grid:{color:'rgba(36,48,80,.5)'},border:{color:'var(--border)'}},
+        y:{ticks:{color:'#7a8fbb',font:{family:"'JetBrains Mono', monospace",size:10},
+             callback:v=>v>=1e7?'₹'+(v/1e7).toFixed(1)+'Cr':v>=1e5?'₹'+(v/1e5).toFixed(1)+'L':v<0?'-₹'+Math.abs(v).toLocaleString('en-IN'):'₹'+v.toLocaleString('en-IN')},
+           grid:{color:'rgba(36,48,80,.5)'},border:{color:'var(--border)'},
+           title:{display:true,text:chartTitle,color:'#7a8fbb',font:{family:"'JetBrains Mono'",size:10}}}
+      }
+    }
+  });
+}
+
+function renderSipTable(schA, schB, nA, nB, sip, mfRate){
+  document.getElementById('stbl-head').innerHTML=`<tr>
+    <th>Month</th>
+    <th style="color:var(--loan-a)">EMI (A)</th>
+    <th style="color:var(--loan-a)">Balance (A)</th>
+    <th style="color:var(--loan-b)">EMI (B)</th>
+    <th style="color:var(--loan-b)">Balance (B)</th>
+    <th style="color:var(--mf-color)">SIP Invested</th>
+    <th style="color:var(--mf-color)">MF Corpus</th>
+    <th style="color:var(--sip-color)">True Net Gain</th>
+  </tr>`;
+
+  let rows=''; let cumIntA=0, cumIntB=0;
+  for(let i=0;i<nB;i++){
+    const a = i<schA.schedule.length ? schA.schedule[i] : null;
+    const b = i<schB.schedule.length ? schB.schedule[i] : null;
+    cumIntA += a ? a.interest : 0;
+    cumIntB += b ? b.interest : 0;
+    const corpus       = Math.round(sipFV(sip, mfRate, i+1));
+    const sipInvested  = sip * (i+1);
+    const extraIntSoFar= Math.round(cumIntB - cumIntA);
+    const rowNetGain   = corpus - sipInvested - extraIntSoFar;
+    rows+=`<tr>
+      <td>${i+1}</td>
+      <td style="color:var(--loan-a);font-weight:600">${a?fmt(a.emi):'✓ Closed'}</td>
+      <td style="color:rgba(129,140,248,.65)">${a?fmt(a.balance):'—'}</td>
+      <td style="color:var(--loan-b);font-weight:600">${b?fmt(b.emi):'—'}</td>
+      <td style="color:rgba(244,114,182,.65)">${b?fmt(b.balance):'—'}</td>
+      <td style="color:var(--mf-color)">${fmt(sipInvested)}</td>
+      <td style="color:var(--mf-color);font-weight:700">${fmt(corpus)}</td>
+      <td style="color:${rowNetGain>=0?'var(--sip-color)':'var(--red)'};font-weight:600">${rowNetGain<0?'−':''}${fmt(Math.abs(rowNetGain))}</td>
+    </tr>`;
+  }
+  document.getElementById('stbl-body').innerHTML=rows;
+  const finalCorpus  = Math.round(sipFV(sip, mfRate, nB));
+  const totalSipInv  = sip * nB;
+  const totalExtraInt= Math.round(schB.totalInterest - schA.totalInterest);
+  const trueNetGain  = finalCorpus - totalSipInv - totalExtraInt;
+  document.getElementById('stbl-foot').innerHTML=`<tr>
+    <td>TOTAL</td>
+    <td style="color:var(--loan-a)">${fmtS(schA.totalPayment)}</td>
+    <td style="color:rgba(129,140,248,.65)">${fmtS(schA.totalInterest)} interest</td>
+    <td style="color:var(--loan-b)">${fmtS(schB.totalPayment)}</td>
+    <td style="color:rgba(244,114,182,.65)">${fmtS(schB.totalInterest)} interest</td>
+    <td style="color:var(--mf-color)">${fmtS(totalSipInv)} invested</td>
+    <td style="color:var(--mf-color);font-weight:800">${fmtS(finalCorpus)}</td>
+    <td style="color:${trueNetGain>=0?'var(--sip-color)':'var(--red)'};font-weight:800">${trueNetGain<0?'−':''}${fmtS(Math.abs(trueNetGain))}</td>
+  </tr>`;
+}
+
+// ──────────────────────────────────────────────
 // UPDATE COMPARE
 // ──────────────────────────────────────────────
 function updateCompare(){
@@ -736,17 +1182,16 @@ function updateCompare(){
   let r1,r2,n1,n2;
 
   if(S.cmpType==='emi'){
-    // Given EMI → back-calc tenure → full schedule
+    // Given EMI → back-calc tenure → full schedule using shared cmpRate
     const emi1=S.cmpS1Val, emi2=S.cmpS2Val;
-    const rv1=iType==='flat'?revFlat(P,S.flatRate,emi1):revReducing(P,S.redRate,emi1);
-    const rv2=iType==='flat'?revFlat(P,S.flatRate,emi2):revReducing(P,S.redRate,emi2);
+    const rv1=iType==='flat'?revFlat(P,S.cmpRate,emi1):revReducing(P,S.cmpRate,emi1);
+    const rv2=iType==='flat'?revFlat(P,S.cmpRate,emi2):revReducing(P,S.cmpRate,emi2);
     if(!rv1.valid||!rv2.valid){
       document.getElementById('cmp-summary-grid').innerHTML=`<div class="card diff" style="grid-column:1/-1"><small>Error</small><div class="big" style="color:var(--red);font-size:1rem">EMI is too low to cover interest. Please increase the EMI value.</div></div>`;
       return;
     }
     n1=Math.min(Math.ceil(rv1.n),600); n2=Math.min(Math.ceil(rv2.n),600);
-    r1=calc(P,S.flatRate,n1,iType); r2=calc(P,S.flatRate,n2,iType);
-    // Override EMI with user's chosen values (the schedule emi will match calc but let's use calc'd for accuracy)
+    r1=calc(P,S.cmpRate,n1,iType); r2=calc(P,S.cmpRate,n2,iType);
   } else {
     // Given rate → fixed tenure → EMI differs
     n1=n2=S.cmpTenure;
@@ -773,6 +1218,7 @@ function updateNormal(){
 
 function update(){
   if(S.mode==='compare') updateCompare();
+  else if(S.mode==='sip') updateSip();
   else updateNormal();
 }
 
@@ -781,18 +1227,33 @@ function update(){
 // ──────────────────────────────────────────────
 function syncPair(numId, slId, key, min, max, dec){
   const nEl=document.getElementById(numId), sEl=document.getElementById(slId);
-  function apply(raw){
-    let v=parseFloat(raw); if(isNaN(v))return;
-    v=Math.min(max,Math.max(min,v));
-    S[key]=v;
-    nEl.value=dec>0?v.toFixed(dec):Math.round(v);
-    sEl.value=v;
-    if(v>parseFloat(sEl.max)) sEl.max=v*1.5;
-    update();
+  let debounce=null;
+  function apply(raw, immediate){
+    let v=parseFloat(raw); if(isNaN(v)||raw===''||raw==='-')return;
+    // Only clamp on blur/enter, not while typing (lets user type e.g. "50000" freely)
+    if(immediate){
+      v=Math.min(max,Math.max(min,v));
+      S[key]=v;
+      nEl.value=dec>0?v.toFixed(dec):Math.round(v);
+      sEl.value=v;
+      if(v>parseFloat(sEl.max)) sEl.max=v*1.5;
+      update();
+    } else {
+      // Live update while typing — update state & chart without reformatting the input
+      clearTimeout(debounce);
+      debounce=setTimeout(()=>{
+        v=Math.min(max,Math.max(min,v));
+        S[key]=v;
+        sEl.value=v;
+        if(v>parseFloat(sEl.max)) sEl.max=v*1.5;
+        update();
+      }, 120); // small debounce so we don't recalc on every keystroke mid-number
+    }
   }
-  nEl.addEventListener('change',()=>apply(nEl.value));
-  nEl.addEventListener('keydown',e=>{if(e.key==='Enter')apply(nEl.value);});
-  sEl.addEventListener('input',()=>apply(sEl.value));
+  nEl.addEventListener('input', ()=>apply(nEl.value, false));
+  nEl.addEventListener('change',()=>apply(nEl.value, true));
+  nEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ apply(nEl.value,true); nEl.blur(); } });
+  sEl.addEventListener('input',()=>apply(sEl.value, true));
 }
 
 syncPair('num-amount','sl-amount','amount',  1000,100000000,0);
@@ -806,6 +1267,14 @@ syncPair('cnum-amount','csl-amount','cmpAmount', 1000,100000000,0);
 syncPair('cnum-tenure','csl-tenure','cmpTenure', 1,  360,       0);
 syncPair('cnum-s1',    'csl-s1',   'cmpS1Val',  0.1,10000000,  2);
 syncPair('cnum-s2',    'csl-s2',   'cmpS2Val',  0.1,10000000,  2);
+syncPair('cnum-rate',  'csl-rate', 'cmpRate',   0.1,60,        2);
+
+// SIP Strategy syncs
+syncPair('snum-amount', 'ssl-amount', 'sipAmount',  10000,100000000, 0);
+syncPair('snum-rate',   'ssl-rate',   'sipRate',    0.1,  50,        2);
+syncPair('snum-emia',   'ssl-emia',   'sipEmiA',    100,  10000000,  0);
+syncPair('snum-emib',   'ssl-emib',   'sipEmiB',    100,  10000000,  0);
+syncPair('snum-mfrate', 'ssl-mfrate', 'sipMfRate',  1,    30,        1);
 
 // Name inputs
 document.getElementById('cmp-s1-name').addEventListener('input',e=>{S.cmpS1Name=e.target.value||'Scenario A'; updateCompare();});
@@ -833,7 +1302,7 @@ document.getElementById('zoom-sl').addEventListener('input',function(){
 // ──────────────────────────────────────────────
 // INIT
 // ──────────────────────────────────────────────
-// Hide tenure in compare-emi mode by default
+// Hide tenure in compare-emi mode by default (rate field visible by default since cmpType=emi)
 document.getElementById('cgrp-tenure').style.display='none';
 update();
 </script>
